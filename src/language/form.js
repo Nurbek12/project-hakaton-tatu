@@ -1,0 +1,62 @@
+export const en = {
+    title: "Title",
+    creator: "Author",
+    date: "Date",
+    status: "Status",
+    actions: "Actions",
+    delete: "Delete",
+    save: "Save",
+    edit: "Edit",
+    name: "Name and Surname",
+    email: "Email",
+    create: "Create",
+    create_new_post: "Create post",
+    create_new_user: "Create user",
+
+    delete_comfirm: "Do you want to remove this item?",
+    toggle_comfirm: "Do you want to publish this post?",
+    success_created_post: "Post created successfully!",
+    success_created_user: "User created successfully!",
+}
+
+export const ru = {
+    title: "Загаловок",
+    creator: "Автор",
+    date: "Дата",
+    status: "Статус",
+    actions: "Управлять",
+    delete: "Удалить",
+    save: "Сохранить",
+    edit: "Изменить",
+    name: "Имя и фамилия",
+    email: "Email",
+    create: "Создать",
+    create_new_post: "Создать пост",
+    create_new_user: "Создать пользователь",
+
+    delete_comfirm: "Вы хотите удалить этот элемент?",
+    toggle_comfirm: "Вы хотите опубликовать этот пост?",
+    success_created_post: "Пост успешно создан!",
+    success_created_user: "Пользователь успешно создан!",
+}
+
+export const uz = {
+    title: "Sarlavha",
+    creator: "Muallif",
+    date: "Yaratilgan vaqti",
+    status: "Holati",
+    actions: "Boshqarish",
+    delete: "O'chirish",
+    save: "Saqlash",
+    edit: "O'zgartirish",
+    name: "Ismi va familiyasi",
+    email: "Email",
+    create: "Yaratish",
+    create_new_post: "Post yarayish",
+    create_new_user: "Foydalanuvchi yaratish",
+
+    delete_comfirm: "Ushbu elementni o'chrimoqchimisiz?",
+    toggle_comfirm: "Ushbu postni nashr qilishni xohlaysizmi?",
+    success_created_post: "Post muvaffaqiyatli yaratildi!",
+    success_created_user: "Foydalanuvchi muvaffaqiyatli yaratildi!",
+}
