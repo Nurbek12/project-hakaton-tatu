@@ -13,27 +13,22 @@ import store from '../store'
 const beforeEnter = (to, __, next) => {
     if (!store.getters.logged) next('/login')
     else if (to.meta.role === 'all') next()
-    else if (to.meta.role !== store.getters.role) next(store.getters.role==="staff"?'/staff':'/admin')
+    else if (to.meta.role !== store.getters.role) next(store.getters.role==="user"?'/posts':'/admin')
     else next()
-}
-
-const beforeEnterIndex = (to, __, next) => {
-    if (!store.getters.logged) next('/login')
-    else next(store.getters.role==="staff"?'/staff':'/admin')
 }
 
 export default createRouter({
     history: createWebHistory(),
     routes: [
-        { path: '/', component: Dashboard, beforeEnter: beforeEnterIndex, },
-        { path: '/admin', component: Dashboard, beforeEnter, meta: { role: "superuser" } },
+        { path: '/', redirect: '/login' },
+        { path: '/admin', component: Dashboard, beforeEnter, meta: { role: "admin" } },
         { path: '/login', component: Login },
-        { path: '/posts', component: Posts, beforeEnter, meta: { role: "superuser" } },
+        { path: '/posts', component: Posts, beforeEnter, meta: { role: "admin" } },
         { path: '/settings', component: Settings, beforeEnter, meta: { role: "all" } },
         { path: '/post/:id', component: Post, beforeEnter, meta: { role: "all" } },
         { path: '/edit/:id', component: Edit, beforeEnter, meta: { role: "all" } },
-        { path: '/newpost', component: Create, beforeEnter, meta: { role: "staff" }  },
-        { path: '/staff', component: UserPosts, beforeEnter, meta: { role: "staff" } },
-        { path: '/users', component: Users, beforeEnter, meta: { role: "superuser" } },
+        { path: '/newpost', component: Create, beforeEnter, meta: { role: "all" }  },
+        { path: '/staff', component: UserPosts, beforeEnter, meta: { role: "user" } },
+        { path: '/users', component: Users, beforeEnter, meta: { role: "admin" } },
     ]
 })

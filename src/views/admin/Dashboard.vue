@@ -44,8 +44,8 @@ import { computed, ref, watch, } from 'vue'
 import { BarChart } from 'vue-chart-3'
 import { Chart, registerables } from "chart.js"
 import { useI18n } from 'vue-i18n'
-import { by_month_posts, get_posts_count, get_posts_pub_count } from '../../request/posts'
-import { get_users_counts } from '../../request/users'
+// import { by_month_posts, get_posts_count, get_posts_pub_count } from '../../request/posts'
+// import { get_users_counts } from '../../request/users'
 
 const { locale, t } = useI18n()
 const chart = ref([])
@@ -78,12 +78,12 @@ const line_data = computed(() => {
 })
 
 const init = async () => {
-  const [count_by_month, pc, ppc] = await Promise.all([by_month_posts(''), get_posts_count(), get_posts_pub_count(), ]) //get_users_counts
+  // const [count_by_month, pc, ppc] = await Promise.all([by_month_posts(''), get_posts_count(), get_posts_pub_count(), ]) //get_users_counts
 
-  chart.value = count_by_month.data
-  counts.value.posts = pc.data.count
-  counts.value.pub_posts = ppc.data.count
-  console.log(pc.data, ppc.data);
+  // chart.value = count_by_month.data
+  // counts.value.posts = pc.data.count
+  // counts.value.pub_posts = ppc.data.count
+  // console.log(pc.data, ppc.data);
 }
 
 init()

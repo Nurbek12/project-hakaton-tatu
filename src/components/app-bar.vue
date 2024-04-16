@@ -1,6 +1,6 @@
 <template>
   <v-app-bar density="compact" height="80" color="background" flat>
-    <v-app-bar-title title="Payariq Med Texnikum">{{getters.user?.username || ''}}</v-app-bar-title>
+    <v-app-bar-title title="Payariq Med Texnikum">{{getters.user?.name || ''}}</v-app-bar-title>
 
     <template v-slot:append>
       <v-btn variant="flat" class="mr-1" size="40" color="primary" @click="changeTheme">

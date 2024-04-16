@@ -1,15 +1,13 @@
-import api from './'
+import api from '.'
 
-export const get_users = () => api.get('/auth/users')
+export const get_users = (q) => api.get(`/api/users?${q}`)
 
-export const login = data => api.post('/auth/jwt/create/', data)
+export const login = data => api.post('/api/login', data)
 
-export const get_me = token => api.get('/api/v1/users/me/', { headers: { Authorization: `Bearer ${token}` } })
+export const get_users_counts = () => api.get('/api/users/count')
 
-export const get_users_counts = () => api.get('/auth/users')
+export const create_user = userdata => api.post('/api/users', userdata)
 
-export const create_user = userdata => api.post('/auth/users/', userdata)
+export const edit_user = (id, userdata) => api.put('/api/users'+id, userdata)
 
-export const edit_user = (id, userdata) => api.put('/users/'+id, userdata)
-
-export const delete_user = id => api.delete('/auth/users/'+id)
+export const delete_user = id => api.delete('/api/users'+id)

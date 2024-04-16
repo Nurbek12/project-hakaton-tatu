@@ -32,7 +32,7 @@
               <template v-slot:item.actions="{ index, item }">
                 <td :data-label="t('form.delete')">
                   <div class="d-flex justify-end">
-                    <v-btn variant="flat" color="red" @click="deleteItem(item.id, index)">
+                    <v-btn variant="flat" color="red" @click="deleteItem(item._id, index)">
                       <v-icon>mdi-delete</v-icon>
                     </v-btn>
                   </div>
@@ -40,10 +40,13 @@
               </template>
 
               <template #item.name="{ index, item }">
-                <td :data-label="t('form.name')">{{ index + 1 }}. {{ item.username }}</td>
+                <td :data-label="t('form.name')">{{ index + 1 }}. {{ item.name }}</td>
               </template>
-              <template #item.email="{ item }">
-                <td :data-label="t('form.email')">{{ item.email }}</td>
+              <template #item.login="{ item }">
+                <td :data-label="t('login.login')">{{ item.login }}</td>
+              </template>
+              <template #item.role="{ item }">
+                <td :data-label="t('form.role')">{{ item.role }}</td>
               </template>
             </v-data-table>
           </div>
@@ -110,7 +113,8 @@ const { t } = useI18n()
 const rules = [(v) => !!v || "Required"]
 const headers = [
   { title: "form.name", key: "name", sortable: true },
-  { title: "form.email", key: "email", sortable: false },
+  { title: "login.login", key: "login", sortable: false },
+  { title: "form.role", key: "role", sortable: false },
   { title: "form.delete", align: "start", key: "actions", sortable: false },
 ]
 const localizedHeaders = computed(() => headers.map(h => ({...h, title: t(h.title)})) )
@@ -168,8 +172,8 @@ const deleteItem = async (id, i) => {
   
 const init =  async () => {
   loading.value = true
-  const { data } = await get_users()
-  items.value = data
+  const { data } = await get_users(`page=1&limit=1000`)
+  items.value = data.result
   loading.value = false
 }
 

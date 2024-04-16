@@ -21,10 +21,10 @@
               <template v-slot:item.actions="{ index, item }">
                 <td :data-label="t('form.delete')">
                   <div class="d-flex justify-end">
-                    <v-btn variant="flat" size="35" flat class="ml-1" color="blue" :to="`/post/${item.id}`">
+                    <v-btn variant="flat" size="35" flat class="ml-1" color="blue" :to="`/post/${item._id}`">
                       <v-icon>mdi-eye</v-icon>
                     </v-btn>
-                    <v-btn variant="flat" size="35" flat class="ml-1" color="red" @click="deleteItem(item.id, index)">
+                    <v-btn variant="flat" size="35" flat class="ml-1" color="red" @click="deleteItem(item._id, index)">
                       <v-icon>mdi-delete</v-icon>
                     </v-btn>
                   </div>

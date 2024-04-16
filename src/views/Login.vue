@@ -38,21 +38,21 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { login, get_me } from "../request/users";
-import { useStore } from "vuex";
-import { useRouter } from 'vue-router'
+import { ref } from "vue"
+import { useStore } from "vuex"
 import { useI18n } from 'vue-i18n'
-import { checkToken } from "../request";
+import { useRouter } from 'vue-router'
+import { checkToken } from "../request"
+import { login } from "../request/users"
 
 const { t } = useI18n()
-const store = useStore();
+const store = useStore()
 const router = useRouter()
-const show = ref(false);
-const rules = [(v) => !!v || "Required"];
-const form = ref(null);
-const error = ref(false);
-const loading = ref(false);
+const show = ref(false)
+const rules = [(v) => !!v || "Required"]
+const form = ref(null)
+const error = ref(false)
+const loading = ref(false)
 
 const user = ref({
   login: "",
@@ -62,25 +62,23 @@ const lgn = async () => {
   try {
     loading.value=true
     const { data } = await login({
-      username: user.value.login,
+      login: user.value.login,
       password: user.value.password,
     });
-
-    const userdata = await get_me(data.access)
-    store.commit("setUser", userdata.data);
-    store.commit("setToken", data.access);
+    
+    store.commit("setUser", data.user)
+    store.commit("setToken", data.token)
 
     checkToken()
-    router.push(userdata.data.role==="staff"?'/staff':'/admin')
+    router.push(data.user.role==="users"?'/posts':'/admin')
     loading.value=false
-
   } catch (err) {
     Object.assign(user.value, {
-        login: "",
-        password: "",
-      })
-      error.value = true
-      loading.value=false
+      login: "",
+      password: "",
+    })
+    error.value = true
+    loading.value=false
   }
 };
 const validate = async () => {

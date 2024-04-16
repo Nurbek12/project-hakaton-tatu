@@ -22,7 +22,7 @@ export default createStore({
             state.user = {}
             localStorage.removeItem('user')
             Cookies.remove('token')
-            window.location.href = '/login'
+            // window.location.href = '/login'
         },
         setUser(state, user){
             state.user = user

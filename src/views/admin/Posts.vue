@@ -21,10 +21,10 @@
               <template v-slot:item.actions="{ index, item }">
                 <td :data-label="t('form.delete')">
                   <div class="d-flex justify-end">
-                    <v-btn variant="flat" size="35" flat class="ml-1" color="blue" :to="`/post/${item.id}`">
+                    <v-btn variant="flat" size="35" flat class="ml-1" color="blue" :to="`/post/${item._id}`">
                       <v-icon>mdi-eye</v-icon>
                     </v-btn>
-                    <v-btn variant="flat" size="35" flat class="ml-1" color="red" @click="deleteItem(item.id, index)">
+                    <v-btn variant="flat" size="35" flat class="ml-1" color="red" @click="deleteItem(item._id, index)">
                       <v-icon>mdi-delete</v-icon>
                     </v-btn>
                   </div>
@@ -32,17 +32,17 @@
               </template>
 
               <template #item.title="{ index, item }">
-                <td :data-label="t('posts.title')">{{ index + 1 }}. {{ item.title }}</td>
+                <td :data-label="t('posts.title')">{{ item.title_uz }}</td>
               </template>
               <template #item.creator="{ item }">
-                <td :data-label="t('posts.creator')">{{ item.creator?.username }}</td>
+                <td :data-label="t('posts.creator')">{{ item.creator?.name }}</td>
               </template>
               <template #item.date="{ item }">
-                <td :data-label="t('posts.date')">{{ new Date(item.publish_date).toLocaleString() }}</td>
+                <td :data-label="t('posts.date')">{{ new Date(item.createdAt).toLocaleString() }}</td>
               </template>
               <template #item.status="{ index, item }">
                 <td :data-label="t('posts.status')">
-                  <v-chip @click="togglePublish(item.id, index, item.is_published)" link variant="flat" label :color="item.is_published?'green':'orange'" class="text-white">{{ t(item.is_published?"posts.published":"posts.not_published") }}</v-chip>
+                  <v-chip @click="togglePublish(item._id, index, item.public)" link variant="flat" label :color="item.public?'green':'orange'" class="text-white">{{ t(item.public?"posts.published":"posts.not_published") }}</v-chip>
                 </td>
               </template>
               <template #bottom>
@@ -64,7 +64,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from "vue"
+import { ref, computed } from "vue"
 import { get_posts, delete_post, toggle_posts } from '../../request/posts'
 import { useI18n } from 'vue-i18n'
 
@@ -78,7 +78,7 @@ const headers = [
 ]
 const localizedHeaders = computed(() => headers.map(h => ({...h, title: t(h.title)})) )
 
-const perpage = ref(10)
+const perpage = ref(20)
 const page = ref(1)
 const serverItems = ref([])
 const loading = ref(true)
@@ -93,7 +93,7 @@ const togglePublish = async (id, i, p) => {
   if(!confirm(t('form.toggle_comfirm'))) return
   
   await toggle_posts(id, !p)
-  serverItems.value[i].is_published = !p
+  serverItems.value[i].public = !p
 }
 
 const deleteItem = async (id, i) => {
@@ -104,8 +104,8 @@ const deleteItem = async (id, i) => {
   
 const loadItems =  async ({page, itemsPerPage }) => {
   loading.value = true
-  const { data } = await get_posts(`limit=${itemsPerPage}&offset=${(page - 1) * parseInt(itemsPerPage)}`)
-  serverItems.value = data.results
+  const { data } = await get_posts(`page=${page}&limit=${itemsPerPage}`)
+  serverItems.value = data.result
   totalItems.value = data.count
   loading.value = false
 }
