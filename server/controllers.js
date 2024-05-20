@@ -1,9 +1,21 @@
-// import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import * as cheerio from 'cheerio'
 import { Post, User } from './models.js'
 import Telegram from 'node-telegram-bot-api'
 import { config } from 'dotenv'
+import { IgApiClient } from 'instagram-private-api'
+// import { get } from 'request-promise'
+
+const postToInsta = async (images, content) => {
+    const ig = new IgApiClient()
+    ig.state.generateDevice(process.env.IG_USERNAME)
+    await ig.account.login(process.env.IG_USERNAME, process.env.IG_PASSWORD)
+
+    await ig.publish.album({
+        items: images.map(img => ({ file: img.media })),
+        caption: content,
+    })
+}
 
 config()
 
@@ -33,36 +45,30 @@ function imgParser(htmlText) {
     //     .replace(/<[^>]+?>/g, '')
 }
 
-function convertQuillToTelegram(htmlText, title) {
-  const $ = cheerio.load(String(`<p><b>${title}</b></p><br>`+htmlText));
-  // $.root().html();
-  // console.log(1, $.root().text());
+function convertQuillToTelegram(html, title) {  
+    const allowedTags = ['b', 'i', 'u', 's', 'span', 'strong', 'em', 'ins', 'strike','del', 'a', 'code', 'pre>']
+    const $ = cheerio.load(`<b>${title}</b><br><br>${html}`);
 
-  $('b').each((index, element) => $(element).replaceWith(`<b>${$(element).text()}</b>`) );
-  $('p').each((index, element) => $(element).replaceWith(`${$(element).text()}\n`) );
-  $('strong').each((index, element) => $(element).replaceWith(`**${$(element).text()}**`) );
-  $('i').each((index, element) => $(element).replaceWith(`__${$(element).text()}__`) );
-  $('br').each((index, element) => $(element).replaceWith(`\n`) );
-  $('em').each((index, element) => $(element).replaceWith(`__${$(element).text()}__`) );
+    $('p, br').after('\n');
 
-  // Underline
-  // $('u').each((index, element) => {
-  //   $(element).replaceWith(`<u>${$(element).text()}</u>`);
-  // });
+  $('*').not(allowedTags.join(',')).each((index, element) => {
+    const parent = $(element).parent();
+    const nextSibling = $(element).next();
 
-  // Strikethrough
-  $('s').each((index, element) => $(element).replaceWith(`~~${$(element).text()}~~`) );
+    $(element).replaceWith($(element).contents());
 
-  // Code block
-  $('code').each((index, element) => $(element).replaceWith(`\`${$(element).text()}\``) );
-  $('a').each((index, element) => {
-    const href = $(element).attr('href');
-    const text = $(element).text();
-    $(element).replaceWith(`[${text}](${href})`);
-    // $(element).replaceWith(`<a href="${href}" target="_blank">${text}</a>`);
+    if (nextSibling.length) {
+      parent.append(nextSibling);
+    }
   });
 
-  return $.root().text();
+  return $.html();
+}
+
+function removeTags(htmlString) {
+    const $ = cheerio.load(htmlString)
+    // $('p, br').after('\n');
+    return $('body').text()
 }
 
 export const UserControllers = {
@@ -234,10 +240,25 @@ export const PostControllers = {
     send_telegram: async (req, res) => {
         try {
             const photos = imgParser(req.body.text).map(image => ({ type:"photo", media: Buffer.from(image, 'base64') }))
-            photos[photos.length-1].caption = convertQuillToTelegram(req.body.text, req.body.title)
-            photos[photos.length-1].parse_mode = "MarkdownV2" //Markdown MarkdownV2
-            // console.log(convertQuillToTelegram(req.body.text, req.body.title));
-            await bot.sendMediaGroup('@'+process.env.CHANEL, photos)
+            if(photos.length === 0) {
+                await bot.sendMessage('@'+process.env.CHANEL, convertQuillToTelegram(req.body.text, req.body.title), { parse_mode: 'HTML' })
+            } else {
+                photos[photos.length-1].caption = convertQuillToTelegram(req.body.text, req.body.title)
+                photos[photos.length-1].parse_mode = "HTML" //Markdown MarkdownV2
+                await bot.sendMediaGroup('@'+process.env.CHANEL, photos)
+                // await postToInsta(photos, removeTags(convertQuillToTelegram(req.body.text, req.body.title)))
+                // console.log(photos)
+                // var turndownService = new TurndownService()
+                // turndownService.addRule('')
+                // var markdown = turndownService.turndown(req.body.text)
+                // photos[photos.length-1].caption = markdown
+                // console.log(convertQuillToTelegram(req.body.text, req.body.title))
+                // console.log(req.body.text);
+                // console.log(downshow.downshow(new jsDom.JSDOM(req.body.text)));
+                // console.log(markdown);
+                
+                // await bot.sendMessage('@'+process.env.CHANEL, convertQuillToTelegram(req.body.text, req.body.title), { parse_mode: 'HTML' })
+            }
             res.json(true)
         } catch (error) {
             console.log(error)

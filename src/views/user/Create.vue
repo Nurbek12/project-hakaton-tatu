@@ -98,7 +98,7 @@ const save = async () => {
     loading.value = true
     await create_post(newpost)
     await create_post_telegram({ text: newpost.content_uz, title: newpost.title_uz })
-    const qlEditor = document.querySelector(".ql-editor");
+    const qlEditor = document.querySelector(".ql-editor")
     qlEditor.innerHTML = ""
     form.value?.reset()
     loading.value = false

@@ -3,8 +3,8 @@ import Cookies from 'js-cookie'
 
 export default createStore({
     state: {
-        user: JSON.parse(localStorage.getItem('user') || '{}'),
-        token: Cookies.get('token') || '',
+        user: JSON.parse(localStorage.getItem('luser') || '{}'),
+        token: Cookies.get('ltoken') || '',
     },
     getters: {
         user: state => state.user,
@@ -20,18 +20,18 @@ export default createStore({
         logout(state){
             state.token = ''
             state.user = {}
-            localStorage.removeItem('user')
-            Cookies.remove('token')
+            localStorage.removeItem('luser')
+            Cookies.remove('ltoken')
             // window.location.href = '/login'
         },
         setUser(state, user){
             state.user = user
-            localStorage.setItem('user', JSON.stringify(user))
+            localStorage.setItem('luser', JSON.stringify(user))
         },
         setToken(state, token){
             state.token = token
             const expires = new Date(new Date().getTime() + 2 * 60 * 60 * 1000)
-            Cookies.set('token', token, { expires })
+            Cookies.set('ltoken', token, { expires })
         },
     }
 })

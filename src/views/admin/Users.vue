@@ -106,8 +106,9 @@
 
 <script setup>
 import { ref, computed, nextTick, watch } from "vue"
-import { get_users, delete_user } from "../../request/users"
+import { get_users, delete_user, create_user } from "../../request/users"
 import { useI18n } from 'vue-i18n'
+// import axios from '../../request'
 
 const { t } = useI18n()
 const rules = [(v) => !!v || "Required"]
@@ -155,9 +156,9 @@ const close = () => {
 }
 
 const save = async () => {
-  const { data } = await axios.post("/user", editedItem.value);
+  const { data } = await create_user(editedItem.value);
   if(data){
-    serverItems.value.push(data);
+    items.value.push(data);
     close()
   }else{
     editedItem.value.login = ''
@@ -166,7 +167,7 @@ const save = async () => {
 
 const deleteItem = async (id, i) => {
   if(!confirm('Вы хотите удалить этот пользователь?')) return
-  serverItems.value.splice(i, 1)
+  items.value.splice(i, 1)
   await delete_user(id)
 }
   
