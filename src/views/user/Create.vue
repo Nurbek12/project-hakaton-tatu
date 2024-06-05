@@ -28,15 +28,13 @@
                                 </v-col>
 
                                 <v-col cols="12" class="pb-10">
-                                    <quill-editor v-model:content="newpost.content_uz" contentType="html" placeholder="Content UZ" toolbar="full"  />
+                                    <quill-editor v-model:content="newpost.content_uz" contentType="html" data-placeholder="Content UZ" toolbar="full"  />
                                 </v-col>
-                                <!-- <v-col></v-col>
-                                <v-col cols="12" class="pb-10">
-                                    <quill-editor v-model:content="newpost.content_ru" contentType="html" placeholder="Content RU" toolbar="full"  />
+                                <!-- <v-col cols="12" class="pb-10">
+                                    <quill-editor v-model:content="newpost.content_ru" contentType="html" data-placeholder="Content RU" toolbar="full"  />
                                 </v-col>
-                                <v-col></v-col>
                                 <v-col cols="12" class="pb-10">
-                                    <quill-editor v-model:content="newpost.content_en" contentType="html" placeholder="Content EN" toolbar="full"  />
+                                    <quill-editor v-model:content="newpost.content_en" contentType="html" data-placeholder="Content EN" toolbar="full"  />
                                 </v-col> -->
                             </v-row>
                         </v-card-text>

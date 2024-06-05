@@ -3,8 +3,17 @@ import * as cheerio from 'cheerio'
 import { Post, User } from './models.js'
 import Telegram from 'node-telegram-bot-api'
 import { config } from 'dotenv'
+import path from 'path'
+import * as uuid from 'uuid'
 import { IgApiClient } from 'instagram-private-api'
+import url from 'url'
+import fs from 'fs'
+import ImageKit from 'imagekit'
 // import { get } from 'request-promise'
+
+config()
+
+const dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 const postToInsta = async (images, content) => {
     const ig = new IgApiClient()
@@ -17,7 +26,95 @@ const postToInsta = async (images, content) => {
     })
 }
 
-config()
+// function saveImageAndReplace(htmlString) {
+//     const imageRegex = /<img[^>]+src="data:image\/[^;]+;base64,([^"]+)"/g;
+//     let match;
+  
+//     while ((match = imageRegex.exec(htmlString)) !== null) {
+//       const base64Data = match[1];
+//       const buffer = Buffer.from(base64Data, 'base64');
+//       const fileName = uuid.v4() + '.png'; // Assuming the images are PNGs
+//       const filePath = path.join(dirname, 'upload', fileName);
+  
+//       fs.writeFile(filePath, buffer, (err) => {
+//         if (err) {
+//           console.error(err);
+//           return;
+//         }
+//         console.log(`Saved image to ${filePath}`);
+//       });
+  
+//       htmlString = htmlString.replace(match[0], `<img src="/${fileName}"`);
+//     }
+  
+//     return htmlString;
+// }
+
+const imagekit = new ImageKit({
+    publicKey: process.env.IMAGEKIT_PUB_KEY,
+    privateKey: process.env.IMAGEKIT_PPV_KEY,
+    urlEndpoint: process.env.IMAGEKIT_URL_END
+});
+  
+async function saveImageAndReplace(htmlString) {
+    const imageRegex = /<img[^>]+src="data:image\/[^;]+;base64,([^"]+)"/g;
+    let match;
+  
+    while ((match = imageRegex.exec(htmlString)) !== null) {
+      const base64Data = match[1];
+      const buffer = Buffer.from(base64Data, 'base64');
+      const fileName = uuid.v4() + '.jpg';
+  
+      try {
+        const response = await imagekit.upload({
+          file: buffer,
+          fileName: fileName
+        });
+        const imageUrl = response.url;
+  
+        // Replace the image data in the src with the imagekit.io URL
+        htmlString = htmlString.replace(match[0], `<img src="${imageUrl}"`);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  
+    return htmlString;
+}
+
+
+function getPostsCountByDay(dbResult) {
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+  
+    // Create an array of all the days in the current month
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  
+    // Create an empty result array
+    const result = [];
+  
+    // Iterate over the array of days
+    for (const day of days) {
+      // Count the number of posts created on that day using the result from the database
+      const count = dbResult.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate.getDate() === day && itemDate.getMonth() + 1 === currentMonth && itemDate.getFullYear() === currentYear;
+      }).reduce((acc, item) => acc + item.count, 0);
+  
+      // If the count is zero, add an object with the day and a count of zero to the result array
+      if (count === 0) {
+        result.push({ day, count: 0 });
+      }
+      // If the count is greater than zero, add an object with the day and the count to the result array
+      else {
+        result.push({ day, count });
+      }
+    }
+  
+    // Return the result array
+    return result;
+}
 
 const bot = new Telegram(process.env.TOKEN)
 
@@ -46,7 +143,7 @@ function imgParser(htmlText) {
 }
 
 function convertQuillToTelegram(html, title) {  
-    const allowedTags = ['b', 'i', 'u', 's', 'span', 'strong', 'em', 'ins', 'strike','del', 'a', 'code', 'pre>']
+    const allowedTags = ['b', 'i', 'u', 's', 'strong', 'em', 'ins', 'strike','del', 'a', 'code', 'pre>']
     const $ = cheerio.load(`<b>${title}</b><br><br>${html}`);
 
     $('p, br').after('\n');
@@ -147,12 +244,15 @@ export const UserControllers = {
 export const PostControllers = {
     get_posts: async (req, res) => {
         try {
+            let w = { public: true }
+            if(req.user) delete w.public 
             const page = req.query?.page || 1
             const limit = req.query?.limit || 20
 
             const count = await Post.countDocuments()
             const result = await Post.find()
                 .populate('creator', 'name')
+                .select('-content_ru -content_en -content_uz')
                 .skip((page-1)*limit)
                 .limit(limit)
 
@@ -193,8 +293,32 @@ export const PostControllers = {
     
     get_posts_month_count: async (req, res) => {
         try {
-            const result = await Post.countDocuments()
-            res.json(result)
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+            const result = await Post.aggregate([
+                {
+                    $match: {
+                      createdAt: {
+                        $gte: new Date(currentYear, currentMonth - 1, 1),
+                        $lt: new Date(currentYear, currentMonth, 1)
+                      }
+                    }
+                },
+                {
+                    $group: {
+                      _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                      count: { $sum: 1 }
+                    }
+                },
+                {
+                    $project: {
+                      date: "$_id",
+                      count: 1,
+                      _id: 0
+                    }
+                }
+            ])
+            return res.json(getPostsCountByDay(result))
         } catch (error) {
             console.log(error)
         }
@@ -202,7 +326,8 @@ export const PostControllers = {
     
     create_post: async (req, res) => {
         try {
-            const result = await Post.create(req.body)
+            // console.log(await saveImageAndReplace(req.body.content_uz));
+            const result = await Post.create({...req.body, content_uz: await saveImageAndReplace(req.body.content_uz)})
             res.json(result)
         } catch (error) {
             console.log(error)
@@ -221,7 +346,8 @@ export const PostControllers = {
     
     toggle_post: async (req, res) => {
         try {
-            await Post.findByIdAndUpdate(req.params.id, { $set: { public: req.body.public } })
+            const post = Post.findById(req.params.id)
+            await Post.findByIdAndUpdate(req.params.id, { $set: { public: !post.public } })
             res.json(true)
         } catch (error) {
             console.log(error)
@@ -231,6 +357,7 @@ export const PostControllers = {
     delete_post: async (req, res) => {
         try {
             await Post.findByIdAndDelete(req.params.id)
+            // console.log(d);
             res.json(true)
         } catch (error) {
             console.log(error)
@@ -239,6 +366,7 @@ export const PostControllers = {
 
     send_telegram: async (req, res) => {
         try {
+            // console.log(convertQuillToTelegram(req.body.text, req.body.title));
             const photos = imgParser(req.body.text).map(image => ({ type:"photo", media: Buffer.from(image, 'base64') }))
             if(photos.length === 0) {
                 await bot.sendMessage('@'+process.env.CHANEL, convertQuillToTelegram(req.body.text, req.body.title), { parse_mode: 'HTML' })
@@ -246,19 +374,7 @@ export const PostControllers = {
                 photos[photos.length-1].caption = convertQuillToTelegram(req.body.text, req.body.title)
                 photos[photos.length-1].parse_mode = "HTML" //Markdown MarkdownV2
                 await bot.sendMediaGroup('@'+process.env.CHANEL, photos)
-                // await postToInsta(photos, removeTags(convertQuillToTelegram(req.body.text, req.body.title)))
-                // console.log(photos)
-                // var turndownService = new TurndownService()
-                // turndownService.addRule('')
-                // var markdown = turndownService.turndown(req.body.text)
-                // photos[photos.length-1].caption = markdown
-                // console.log(convertQuillToTelegram(req.body.text, req.body.title))
-                // console.log(req.body.text);
-                // console.log(downshow.downshow(new jsDom.JSDOM(req.body.text)));
-                // console.log(markdown);
-                
-                // await bot.sendMessage('@'+process.env.CHANEL, convertQuillToTelegram(req.body.text, req.body.title), { parse_mode: 'HTML' })
-            }
+          }
             res.json(true)
         } catch (error) {
             console.log(error)

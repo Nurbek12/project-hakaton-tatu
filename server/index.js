@@ -12,10 +12,11 @@ const app = express()
 const dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 app
-  .use(cors({ origin: process.env.ORIGIN }))
+  .use(cors({ origin: '*' }))
   .use(express.json({ limit: '40mb' }))
   .use(express.urlencoded({ limit: '40mb', extended: true }))
   .use(express.static(join(dirname, '../', 'dist')))
+  .use(express.static(join(dirname, 'upload')))
   .use('/api', routers)
   .use('*', (req, res) => res.sendFile(join(dirname,'../','dist','index.html')))
 

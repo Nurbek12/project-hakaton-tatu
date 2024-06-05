@@ -44,7 +44,7 @@ const links = {
   admin: [
     { icon: 'mdi-view-grid', title: 'home', url: '/admin' },
     { icon: 'mdi-folder-multiple-image', title: 'posts', url: '/posts' },
-    { icon: 'mdi-account-multiple', title: 'users', url: '/users' },
+    // { icon: 'mdi-account-multiple', title: 'users', url: '/users' },
     { icon: 'mdi-plus-box', title: 'create', url: '/newpost' },
   ],
   user: [

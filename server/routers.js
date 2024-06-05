@@ -21,7 +21,7 @@ export default Router()
     .delete('/users/:id', middleware, UserControllers.delete_user)
     .post('/login', UserControllers.login)
 
-    .get('/posts', middleware, PostControllers.get_posts)
+    .get('/posts', PostControllers.get_posts)
     .get('/post/:id', middleware, PostControllers.get_posts_by_id)
     .get('/posts/count', middleware, PostControllers.get_posts_count)
     .get('/posts/pub_count', middleware, PostControllers.get_posts_pub_count)

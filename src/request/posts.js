@@ -18,4 +18,4 @@ export const edit_posts = (id, data) => api.put(`/api/post/${id}`, data)
 
 export const toggle_posts = (id, is_published) => api.put(`/api/post/toggle/${id}`, { is_published })
 
-export const delete_post = id => api.delete(`/api/post/${id}`)
+export const delete_post = id => api.delete(`/api/posts/${id}`)
